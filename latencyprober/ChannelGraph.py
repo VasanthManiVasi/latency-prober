@@ -8,11 +8,25 @@ def load_graph(path: str):
 
 class Node(dict):
     """
-    Convenience class for accessing node data with dot notation in the LND channel graph.
+    Convenience class for accessing node data in the LND channel graph.
     """
 
     def __init__(self, node_info):
         self.update(node_info)
+
+    def __getattr__(self, attr):
+        return self[attr]
+
+    def __setattr__(self, attr, value):
+        self[attr] = value
+
+class Channel(dict):
+    """
+    Convenience class for accessing channel data in the LND channel graph.
+    """
+
+    def __init__(self, channel_info):
+        self.update(channel_info)
 
     def __getattr__(self, attr):
         return self[attr]

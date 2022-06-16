@@ -33,3 +33,37 @@ class Channel(dict):
 
     def __setattr__(self, attr, value):
         self[attr] = value
+
+class ChannelGraph:
+    def __init__(self, *, path=None, json=None):
+        if path:
+            json = load_graph(path)
+        self.json = json
+
+        self._nodes_json = json['nodes']
+        self.nodes = {node['pub_key']: Node(node) for node in self._nodes_json}
+        self.num_nodes = len(self.nodes)
+
+        self._channels_json = json['edges']
+
+        # Maps from source node pub_key to destination pub_keys and their channels
+        self.channels = {}
+
+        for channel in self._channels_json:
+            nodes = ['node1', 'node2']
+
+            for i in range(len(nodes)):
+                if not channel[nodes[i]+'_policy'] or channel[nodes[i]+'_policy']['disabled'] is True:
+                    continue
+
+                channel = dict(channel)
+                channel['source'] = channel[nodes[i] + '_pub']
+                channel['dest'] = channel[nodes[i-1] + '_pub']
+
+                node_pub = channel['source']
+                if node_pub not in self.channels:
+                    self.channels[node_pub] = {channel['dest']: Channel(channel)}
+                else:
+                    self.channels[node_pub][channel['dest']] = Channel(channel)
+
+        self.num_channels = len(self._channels_json)

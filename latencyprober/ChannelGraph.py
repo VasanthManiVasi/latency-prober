@@ -67,3 +67,12 @@ class ChannelGraph:
                     self.channels[node_pub][channel['dest']] = Channel(channel)
 
         self.num_channels = len(self._channels_json)
+
+    def get_node(self, pubkey: str):
+        return self.nodes[pubkey]
+
+    def get_channels(self, pubkey: str):
+        return self.channels[pubkey]
+
+    def __repr__(self):
+        return f'nodes: {self.num_nodes}\nchannels: {self.num_channels}'

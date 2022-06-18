@@ -1,3 +1,4 @@
+latencyprober/__pycache__
 *.ipynb
 *.json
-latencyprober/__pycache__
+*.mmdb

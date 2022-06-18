@@ -1,5 +1,5 @@
 import json
-
+from .utils import geolocate
 
 def load_graph(path: str):
     with open(path) as f:
@@ -45,9 +45,16 @@ class ChannelGraph:
 
         for node in self._nodes_json:
             addresses = self.filter_invalid_addresses(node['addresses'])
-            if addresses:
-                node['addresses'] = addresses
-                self.nodes[node['pub_key']] = Node(node)
+            if not addresses:
+                continue
+
+            node['addresses'] = addresses
+            geolocation = geolocate(addresses[0])
+            if not geolocation:
+                continue
+
+            node['geolocation'] = geolocation
+            self.nodes[node['pub_key']] = Node(node)
 
         self.num_nodes = len(self.nodes)
 

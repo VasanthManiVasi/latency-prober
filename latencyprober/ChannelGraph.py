@@ -41,7 +41,14 @@ class ChannelGraph:
         self.json = json
 
         self._nodes_json = json['nodes']
-        self.nodes = {node['pub_key']: Node(node) for node in self._nodes_json}
+        self.nodes = {}
+
+        for node in self._nodes_json:
+            addresses = self.filter_invalid_addresses(node['addresses'])
+            if addresses:
+                node['addresses'] = addresses
+                self.nodes[node['pub_key']] = Node(node)
+
         self.num_nodes = len(self.nodes)
 
         self._channels_json = json['edges']
@@ -53,32 +60,46 @@ class ChannelGraph:
             nodes = ['node1', 'node2']
 
             for i in range(len(nodes)):
-                if not channel[nodes[i]+'_policy'] or channel[nodes[i]+'_policy']['disabled'] is True:
+                src_pubkey = channel[nodes[i] + '_pub']
+                dest_pubkey = channel[nodes[i-1] + '_pub']
+
+                if (src_pubkey not in self.nodes
+                    or dest_pubkey not in self.nodes):
+                    # One of the nodes have invalid address
+                    # No channel will be added
+                    break
+
+                if (not channel[nodes[i]+'_policy']
+                    or channel[nodes[i]+'_policy']['disabled'] is True):
+                    # This side of the channel is disabled
                     continue
 
+                # Setting source and dest pub_key for this channel
                 channel = dict(channel)
-                channel['source'] = channel[nodes[i] + '_pub']
-                channel['dest'] = channel[nodes[i-1] + '_pub']
+                channel['source'] = src_pubkey
+                channel['dest'] = dest_pubkey
 
-                node_pub = channel['source']
-                if node_pub not in self.channels:
-                    self.channels[node_pub] = {channel['dest']: Channel(channel)}
+                if src_pubkey not in self.channels:
+                    self.channels[src_pubkey] = {dest_pubkey: Channel(channel)}
                 else:
-                    self.channels[node_pub][channel['dest']] = Channel(channel)
+                    self.channels[src_pubkey][dest_pubkey] = Channel(channel)
 
         self.num_channels = len(self._channels_json)
 
-    def is_onion(self, address):
+    @staticmethod
+    def is_onion(address):
         return True if 'onion' in address['addr'] else False
 
-    def filter_invalid_addresses(self, addresses):
+    @staticmethod
+    def filter_invalid_addresses(addresses):
         ipv4, ipv6 = 0, 0
         new_addresses = []
 
         for address in addresses:
-            if self.is_onion(address) and len(addresses) == 1:
-                # Contains only one onion address and no IP addresses
-                return []
+            if ChannelGraph.is_onion(address):
+                if len(addresses) == 1:
+                    # Contains only one onion address and no IP addresses
+                    return []
             else:
                 # Remove port
                 addr = address['addr'][:address['addr'].rfind(':')]

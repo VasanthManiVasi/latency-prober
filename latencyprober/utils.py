@@ -1,5 +1,6 @@
 import geoip2
 import geoip2.database as db
+from geopy.distance import geodesic
 
 geoip = db.Reader('dbip-city-lite-2022-06.mmdb')
 
@@ -18,3 +19,6 @@ def geolocate(ip_address):
         return None
 
     return location.latitude, location.longitude
+
+def geodistance(node1, node2):
+    return geodesic(node1.geolocation, node2.geolocation).km

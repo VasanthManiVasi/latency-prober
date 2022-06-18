@@ -1,5 +1,5 @@
 import json
-from .utils import geolocate
+from .utils import geolocate, geodistance
 
 def load_graph(path: str):
     with open(path) as f:
@@ -85,6 +85,10 @@ class ChannelGraph:
                 channel = dict(channel)
                 channel['source'] = src_pubkey
                 channel['dest'] = dest_pubkey
+                channel['geodistance'] = geodistance(
+                    self.nodes[src_pubkey],
+                    self.nodes[dest_pubkey]
+                )
 
                 if src_pubkey not in self.channels:
                     self.channels[src_pubkey] = {dest_pubkey: Channel(channel)}

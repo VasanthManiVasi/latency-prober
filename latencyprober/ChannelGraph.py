@@ -68,6 +68,32 @@ class ChannelGraph:
 
         self.num_channels = len(self._channels_json)
 
+    def is_onion(self, address):
+        return True if 'onion' in address['addr'] else False
+
+    def filter_invalid_addresses(self, addresses):
+        ipv4, ipv6 = 0, 0
+        new_addresses = []
+
+        for address in addresses:
+            if self.is_onion(address) and len(addresses) == 1:
+                # Contains only one onion address and no IP addresses
+                return []
+            else:
+                # Remove port
+                addr = address['addr'][:address['addr'].rfind(':')]
+                if ':' in addr:
+                    ipv6 += 1
+                else:
+                    ipv4 += 1
+                new_addresses.append(address)
+
+        if ipv4 > 1 or ipv6 > 1:
+            # More than one IPv4 or IPv6 address found
+            return []
+
+        return new_addresses
+
     def get_node(self, pubkey: str):
         return self.nodes[pubkey]
 

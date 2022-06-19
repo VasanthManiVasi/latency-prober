@@ -23,3 +23,10 @@ combined_creds = grpc.composite_channel_credentials(cert_creds, auth_creds)
 channel = grpc.secure_channel('localhost:10009', combined_creds)
 stub = lnrpc.LightningStub(channel)
 rstub = routerrpc.RouterStub(channel)
+
+def connected_channels():
+    response = stub.ListChannels(ln.ListChannelsRequest())
+    return response.channels
+
+if __name__ == '__main__':
+    print(*[channel.remote_pubkey for channel in connected_channels()], sep='\n')

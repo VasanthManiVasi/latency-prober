@@ -28,5 +28,22 @@ def connected_channels():
     response = stub.ListChannels(ln.ListChannelsRequest())
     return response.channels
 
+def get_info():
+    return stub.GetInfo(ln.GetInfoRequest())
+
+def get_node_info(pub_key, include_channels):
+    return stub.GetNodeInfo(ln.NodeInfoRequest(
+        pub_key=pub_key,
+        include_channels=include_channels
+    ))
+
+def list_channels(active_only=True, public_only=True):
+    request = ln.ListChannelsRequest(
+        active_only=active_only,
+        public_only=public_only
+    )
+    response = stub.ListChannels(request)
+    return response.channels
+
 if __name__ == '__main__':
     print(*[channel.remote_pubkey for channel in connected_channels()], sep='\n')

@@ -1,9 +1,12 @@
-from ChannelGraph import load_graph, ChannelGraph
+import csv
+import json
+import urllib.request
+
 from rpc import *
 from route import *
 from utils import *
-import urllib.request
-import json
+
+from ChannelGraph import load_graph, ChannelGraph
 
 CURRENT_NODE_PUBKEY = get_info().identity_pubkey
 GRAPH_PATH = "../lnd8.json"
@@ -42,4 +45,57 @@ def extract_result(payment_hash, hops, path_distance, sendroute_response):
         'round_trip_time': time_taken(sendroute_response)
     }
 
+fieldnames = [
+    'payment_hash',
+    'start_channel',
+    'num_hops',
+    'hops',
+    'route_distance',
+    'round_trip_time',
+]
+
+filename = 'data.csv'
+
+if not os.path.isfile(filename):
+    with open(filename, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+
 channel_graph, local_channel_distances = initialize()
+
+datas = []
+while True:
+    for chan in list_channels():
+        print("At chan: {} ({})".format(
+            chan.remote_pubkey,
+            channel_graph.get_node(chan.remote_pubkey).alias
+        ))
+
+        num_hops = random.randint(1, 10)
+        print('num_hops: {}'.format(num_hops))
+
+        hops = generate_hops(chan.remote_pubkey, channel_graph, num_hops)
+        print(*hops, sep=' -> ')
+
+        path_distance = route_distance(hops, channel_graph, local_channel_distances)
+        print("route distance: {}".format(path_distance))
+
+        payment_hash = generate_payment_hash()
+        print('payment_hash: {}'.format(payment_hash))
+
+        sendroute_response = send_route(
+            start_channel=chan,
+            hops=hops,
+            payment_hash=payment_hash,
+            router=router,
+            routerstub=routerstub
+        )
+        result = extract_result(payment_hash, hops, path_distance, sendroute_response)
+        print('payment ended in {}s'.format(result['round_trip_time']))
+        datas.append(result)
+
+        if len(datas) > len(list_channels()):
+            with open(filename, 'a', newline='') as f:
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                for data in datas:
+                    writer.writerow(data)

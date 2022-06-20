@@ -25,7 +25,7 @@ def send_route(start_channel, hops, payment_hash, router, routerstub):
     )
 
     sendroute_response = routerstub.SendToRouteV2(sendroute_request, timeout=TIMEOUT)
-    return payment_hash, sendroute_response
+    return sendroute_response
 
 def route_distance(hops, channel_graph, local_channel_distances=None):
     chan = channel_graph.get_channels(hops[0])

@@ -1,6 +1,7 @@
 import geoip2
 import geoip2.database as db
 from geopy.distance import geodesic
+from google.protobuf.json_format import MessageToDict
 
 geoip = db.Reader('dbip-city-lite-2022-06.mmdb')
 
@@ -20,5 +21,11 @@ def geolocate(ip_address):
 
     return location.latitude, location.longitude
 
-def geodistance(node1, node2):
+def geodistance(llpair1, llpair2):
+    return geodesic(llpair1, llpair2).km
+
+def node_distance(node1, node2):
     return geodesic(node1.geolocation, node2.geolocation).km
+
+def to_dict(rpc_response):
+    return MessageToDict(rpc_response, preserving_proto_field_name=True)

@@ -1,6 +1,8 @@
 import geoip2
 import geoip2.database as db
 from geopy.distance import geodesic
+
+import random
 from google.protobuf.json_format import MessageToDict
 
 geoip = db.Reader('dbip-city-lite-2022-06.mmdb')
@@ -29,3 +31,6 @@ def node_distance(node1, node2):
 
 def to_dict(rpc_response):
     return MessageToDict(rpc_response, preserving_proto_field_name=True)
+
+def generate_payment_hash():
+    return hex(random.getrandbits(256))[2:].zfill(64)

@@ -31,3 +31,15 @@ def initialize():
         local_channel_distances[channel.remote_pubkey] = distance
 
     return channel_graph, local_channel_distances
+
+def extract_result(payment_hash, hops, path_distance, sendroute_response):
+    return {
+        'payment_hash': payment_hash,
+        'start_channel': hops[0],
+        'num_hops': len(hops),
+        'hops': '->'.join(hops),
+        'route_distance': path_distance,
+        'round_trip_time': time_taken(sendroute_response)
+    }
+
+channel_graph, local_channel_distances = initialize()

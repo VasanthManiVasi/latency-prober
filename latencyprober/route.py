@@ -2,13 +2,24 @@ import random
 
 AMOUNT = 1000
 CLTV_DELTA = 20
-TIMEOUT = 120
+TIMEOUT = 240
 
 def generate_hops(pub_key, channel_graph, depth):
     if depth <= 1:
         return [pub_key]
+
     channels = list(channel_graph.get_channels(pub_key).keys())
-    return [pub_key] + generate_hops(random.choice(channels), channel_graph, depth-1)
+    next_channel = random.choice(channels)
+
+    i = 0
+    while next_channel not in channel_graph.channels :
+        # Loop until we get a correct channel if we don't get one in the first try
+        if i >= len(channels):
+            return []
+        next_channel = channels[i]
+        i += 1
+
+    return [pub_key] + generate_hops(next_channel, channel_graph, depth-1)
 
 def send_route(start_channel, hops, payment_hash, router, routerstub):
     buildroute_request = router.BuildRouteRequest(

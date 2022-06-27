@@ -1,9 +1,11 @@
+from datetime import datetime
+
 from itertools import chain, zip_longest
 from LatencyProber import LatencyProber
 from utils import generate_payment_hash, CSVWriter
 
 channel_graph_path = "../describegraph.json"
-results_filename = 'results.csv'
+results_filename = f'results {str(datetime.now())}.csv'
 results_fieldnames = [
     'payment_hash',
     'start_channel',
@@ -12,7 +14,8 @@ results_fieldnames = [
     'route_distance',
     'round_trip_time',
 ]
-latency_filename = 'channel_latency_data.csv'
+
+latency_filename = f'channel_latency_data {str(datetime.now())}.csv'
 latency_fieldnames = [
     'channel_id',
     'geodistance',

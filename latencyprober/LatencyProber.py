@@ -10,16 +10,17 @@ from ChannelGraph import load_graph, ChannelGraph
 AMOUNT = 1000
 CLTV_DELTA = 20
 TIMEOUT = 240
+DEFAULT_LND_PORT = 9375
 
 class LatencyProber:
-    def __init__(self, channel_graph_path):
+    def __init__(self, channel_graph_path, lnd_port=DEFAULT_LND_PORT):
         self.grpc_obj = gRPC()
         self.pub_key = self.grpc_obj.get_info().identity_pubkey
 
         _channel_graph_json = load_graph(channel_graph_path)
         for node in _channel_graph_json['nodes']:
             if node['pub_key'] == self.pub_key:
-                node['addresses'] = self._get_ip_address()
+                node['addresses'] = self._get_ip_address(lnd_port)
 
         channel_graph = ChannelGraph(json=_channel_graph_json)
         self.channel_graph = channel_graph
@@ -152,7 +153,7 @@ class LatencyProber:
         return (end_time - start_time) / 10**9
 
 
-    def _get_ip_address(lnd_port: int = 9375):
+    def _get_ip_address(self, lnd_port: int = 9375):
         response = urllib.request.urlopen('http://jsonip.com').read()
         ip_address = json.loads(response)['ip'] + ':' + str(lnd_port)
         return [{'network': 'tcp', 'addr': ip_address}]

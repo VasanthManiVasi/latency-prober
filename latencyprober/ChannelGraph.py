@@ -85,7 +85,8 @@ class ChannelGraph:
                     # No channel will be added
                     break
 
-                if (not channel[nodes[i]+'_policy']
+                if (nodes[i]+'_policy' not in channel
+                    or not channel[nodes[i]+'_policy']
                     or channel[nodes[i]+'_policy']['disabled'] is True):
                     # This side of the channel is disabled
                     continue

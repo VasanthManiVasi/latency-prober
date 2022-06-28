@@ -4,7 +4,6 @@ from itertools import chain, zip_longest
 from LatencyProber import LatencyProber
 from utils import generate_payment_hash, CSVWriter
 
-channel_graph_path = "../describegraph.json"
 results_filename = f'results {str(datetime.now())}.csv'
 results_fieldnames = [
     'payment_hash',
@@ -21,10 +20,10 @@ latency_fieldnames = [
     'geodistance',
     'latency'
 ]
+
+latency_prober = LatencyProber()
 result_writer = CSVWriter(results_filename, results_fieldnames)
 latency_writer = CSVWriter(latency_filename, latency_fieldnames)
-
-latency_prober = LatencyProber(channel_graph_path)
 
 # Deterministic search - stores latency information of each channels in the channel graph
 paths = latency_prober.channel_graph.generate_unique_paths(latency_prober.pub_key)

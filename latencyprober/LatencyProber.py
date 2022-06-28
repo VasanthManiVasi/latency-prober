@@ -13,17 +13,29 @@ TIMEOUT = 240
 DEFAULT_LND_PORT = 9375
 
 class LatencyProber:
-    def __init__(self, channel_graph_path, lnd_port=DEFAULT_LND_PORT):
+    def __init__(self,
+        channel_graph_json: dict = {},
+        lnd_port: int = DEFAULT_LND_PORT
+    ):
         self.grpc_obj = gRPC()
         self.pub_key = self.grpc_obj.get_info().identity_pubkey
 
-        _channel_graph_json = load_graph(channel_graph_path)
-        for node in _channel_graph_json['nodes']:
+        if not channel_graph_json:
+            channel_graph_json = self.grpc_obj.describe_graph()
+
+        # Add the address of our node to the channel graph
+        for node in channel_graph_json['nodes']:
             if node['pub_key'] == self.pub_key:
                 node['addresses'] = self._get_ip_address(lnd_port)
 
-        channel_graph = ChannelGraph(json=_channel_graph_json)
+        channel_graph = ChannelGraph(json=channel_graph_json)
         self.channel_graph = channel_graph
+
+
+    @classmethod
+    def from_channel_graph_path(cls, channel_graph_path: str, lnd_port: int = DEFAULT_LND_PORT):
+        channel_graph_json = load_graph(channel_graph_path)
+        return cls(channel_graph_json, lnd_port)
 
 
     def send_to_route(self,

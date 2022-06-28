@@ -12,6 +12,9 @@ CLTV_DELTA = 20
 TIMEOUT = 240
 DEFAULT_LND_PORT = 9375
 
+MIN_HOPS = 1
+MAX_HOPS = 19
+
 class LatencyProber:
     def __init__(self,
         channel_graph_json: dict = {},
@@ -102,18 +105,6 @@ class LatencyProber:
             i += 1
 
 
-    def _prepare_random_payment(self, start_channel, rand=random.Random()):
-        payment_hash = generate_payment_hash(rand)
-        num_hops = rand.randint(1, 19)
-        hops = self.generate_hops(
-            start_channel.remote_pubkey,
-            num_hops,
-            rand=rand
-        )
-
-        return (payment_hash, hops)
-
-
     def make_random_payment(self, start_channel):
         pub_key = start_channel.remote_pubkey
         print("\nAt chan: {} ({})".format(
@@ -132,7 +123,23 @@ class LatencyProber:
         return self.send_to_route(start_channel, hops, payment_hash)
 
 
-    def generate_hops(self, pub_key, depth, rand=random.Random()):
+    def _prepare_random_payment(self, start_channel, rand=random.Random()):
+        payment_hash = generate_payment_hash(rand)
+        num_hops = rand.randint(1, 19)
+        hops = self.generate_hops(
+            start_channel.remote_pubkey,
+            num_hops,
+            rand=rand
+        )
+
+        return (payment_hash, hops)
+
+
+    def generate_hops(self,
+        pub_key: str,
+        depth: int = random.randint(MIN_HOPS, MAX_HOPS),
+        rand=random.Random()
+    ):
         if depth <= 1:
             return [pub_key]
 

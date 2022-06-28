@@ -6,17 +6,25 @@ import lightning_pb2_grpc as lnrpc
 import router_pb2 as router
 import router_pb2_grpc as routerrpc
 
+from utils import to_dict
+
 os.environ["GRPC_SSL_CIPHER_SUITES"] = 'HIGH+ECDSA'
 
 # gRPC request time out in seconds
 TIMEOUT = 240
+
+MAX_MESSAGE_LENGTH = 1024 * 1024 * 100
+GRPC_OPTIONS = [
+    ('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)
+]
 
 class gRPC:
     def __init__(self,
         macaroon_path: str = '~/.lnd/data/chain/bitcoin/mainnet/admin.macaroon',
         tls_path: str = '~/.lnd/tls.cert',
         grpc_address: str = 'localhost:10009',
-        timeout: int=TIMEOUT
+        timeout: int = TIMEOUT,
+        grpc_options: list = GRPC_OPTIONS
     ):
         with open(os.path.expanduser(macaroon_path), 'rb') as f:
             macaroon_bytes = f.read()
@@ -30,7 +38,7 @@ class gRPC:
         auth_creds = grpc.metadata_call_credentials(_metadata_callback)
         combined_creds = grpc.composite_channel_credentials(cert_creds, auth_creds)
 
-        self.channel = grpc.secure_channel(grpc_address, combined_creds)
+        self.channel = grpc.secure_channel(grpc_address, combined_creds, grpc_options)
         self.ln_stub = lnrpc.LightningStub(self.channel)
         self.router_stub = routerrpc.RouterStub(self.channel)
         self.timeout = timeout
@@ -61,6 +69,10 @@ class gRPC:
             timeout=self.timeout
         )
         return sendroute_response
+
+
+    def describe_graph(self):
+        return to_dict(self.ln_stub.DescribeGraph(ln.ChannelGraphRequest()))
 
 
     def get_info(self):

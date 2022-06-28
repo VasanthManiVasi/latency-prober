@@ -57,7 +57,11 @@ def node_distance(node1, node2):
 
 
 def to_dict(rpc_response):
-    return MessageToDict(rpc_response, preserving_proto_field_name=True)
+    return MessageToDict(
+        rpc_response,
+        including_default_value_fields=True,
+        preserving_proto_field_name=True
+    )
 
 
 def generate_payment_hash(random=random.Random()):

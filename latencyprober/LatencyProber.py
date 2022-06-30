@@ -58,7 +58,7 @@ class LatencyProber:
             )
 
             results = self._extract_results(payment_hash, hops, sendroute_response)
-            print('payment ended in {}s'.format(results['round_trip_time']))
+            # print('payment ended in {}s'.format(results['round_trip_time']))
 
             return results
 
@@ -79,9 +79,11 @@ class LatencyProber:
         num_hops = results['num_hops']
         round_trip_time = results['round_trip_time']
 
+        """
         print(*path, sep=' -> ')
         print('num_hops: {}'.format(num_hops))
         print("route distance: {}".format(results['route_distance']))
+        """
 
         time = 0.0
         current_node = self.pub_key
@@ -157,12 +159,20 @@ class LatencyProber:
         return [pub_key] + self.generate_hops(next_channel, depth-1, rand=rand)
 
 
+    def list_channels(self):
+        channels = self.grpc_obj.list_channels()
+        return [
+            channel
+            for channel in channels
+            if channel.remote_pubkey in self.channel_graph.nodes
+        ]
+
+
     def route_distance(self, hops):
-        channels = self.channel_graph.get_channels(hops[0])
         distance = 0.0
-        for next_hop in hops[1:]:
-            distance += channels[next_hop]['geodistance']
-            channels = self.channel_graph.get_channels(next_hop)
+        for i in range(len(hops) - 1):
+            channels = self.channel_graph.get_channels(hops[i])
+            distance += channels[hops[i + 1]]['geodistance']
         return distance
 
 

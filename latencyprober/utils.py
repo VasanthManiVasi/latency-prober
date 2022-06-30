@@ -1,6 +1,8 @@
 import os
 import csv
 import random
+import threading
+
 import geoip2
 import geoip2.database as db
 
@@ -13,22 +15,27 @@ class CSVWriter:
     def __init__(self, filename, fieldnames):
         self.filename = filename
         self.fieldnames = fieldnames
+        self.lock = threading.Lock()
 
         if not os.path.isfile(filename):
-            with open(filename, 'w', newline='') as f:
-                csv.DictWriter(f, fieldnames=fieldnames).writeheader()
+            self.file = open(filename, 'w', newline='')
+            self.writer = csv.DictWriter(self.file, fieldnames=fieldnames)
+            self.writer.writeheader()
 
 
     def write(self, row):
-        with open(self.filename, 'a', newline='') as f:
-            csv.DictWriter(f, fieldnames=self.fieldnames).writerow(row)
+        with self.lock:
+            self.writer.writerow(row)
 
 
     def write_data(self, data):
-        with open(self.filename, 'a', newline='') as f:
-            writer = csv.DictWriter(f, fieldnames=self.fieldnames)
+        with self.lock:
             for row in data:
-                writer.writerow(row)
+                self.writer.writerow(row)
+
+
+    def close(self):
+        self.file.close()
 
 
 def geolocate(ip_address):

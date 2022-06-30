@@ -1,10 +1,11 @@
-from datetime import datetime
+import datetime
 
 from itertools import chain, zip_longest
 from LatencyProber import LatencyProber
 from utils import generate_payment_hash, CSVWriter
 
-results_filename = f'results {str(datetime.now())}.csv'
+current_time = str(datetime.datetime.now())
+results_filename = f'results {current_time}.csv'
 results_fieldnames = [
     'payment_hash',
     'start_channel',
@@ -14,7 +15,7 @@ results_fieldnames = [
     'round_trip_time',
 ]
 
-latency_filename = f'channel_latency_data {str(datetime.now())}.csv'
+latency_filename = f'channel_latency_data {current_time}.csv'
 latency_fieldnames = [
     'channel_id',
     'geodistance',
@@ -25,9 +26,10 @@ latency_prober = LatencyProber()
 result_writer = CSVWriter(results_filename, results_fieldnames)
 latency_writer = CSVWriter(latency_filename, latency_fieldnames)
 
-# Deterministic search - stores latency information of each channels in the channel graph
+# Deterministic search - stores latency information of each channel in the channel graph
 paths = latency_prober.channel_graph.generate_unique_paths(latency_prober.pub_key)
-paths = list(filter(None, chain.from_iterable(zip_longest(*paths))))
+paths = list(filter(None, chain.from_iterable(zip_longest(*paths)))) # Interleave the paths to avoid overloading a channel
+
 for path in paths:
     start_channel = latency_prober.channel_graph.get_channels(path[0])[path[1]]
     result = latency_prober.send_to_route(start_channel, path[1:], generate_payment_hash())

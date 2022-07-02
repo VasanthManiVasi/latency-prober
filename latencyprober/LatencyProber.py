@@ -168,9 +168,9 @@ class LatencyProber:
     def route_distance(self, hops):
         channels = self.channel_graph.get_channels(hops[0])
         distance = 0.0
-        for next_hop in hops[1:]:
-            distance += channels[next_hop]['geodistance']
-            channels = self.channel_graph.get_channels(next_hop)
+        for i in range(len(hops) - 1):
+            channels = self.channel_graph.get_channels(hops[i])
+            distance += channels[hops[i + 1]]['geodistance']
         return distance
 
 

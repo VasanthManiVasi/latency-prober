@@ -157,6 +157,14 @@ class LatencyProber:
         return [pub_key] + self.generate_hops(next_channel, depth-1, rand=rand)
 
 
+    def list_channels(self):
+        channels = self.grpc_obj.list_channels()
+        return [
+            channel
+            for channel in channels
+            if channel.remote_pubkey in self.channel_graph.nodes
+        ]
+
     def route_distance(self, hops):
         channels = self.channel_graph.get_channels(hops[0])
         distance = 0.0

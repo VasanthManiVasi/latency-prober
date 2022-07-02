@@ -41,7 +41,7 @@ for path in paths:
 # Random search - for additional data points
 while True:
     data = []
-    channels = latency_prober.grpc_obj.list_channels()
+    channels = latency_prober.list_channels()
     for channel in channels:
         result = latency_prober.make_random_payment(channel)
         if result:
